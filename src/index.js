@@ -1,4 +1,6 @@
 import { DateTime } from 'luxon';
+import './style.css';
+import './queenstown-tree.jpg';
 
 onLoad();
 
@@ -277,7 +279,7 @@ function renderForecast(data) {
 
         if (data.measurement == 'imperial') {
             let forecastTempHigh_F = data.forecast[i].high_f;
-            let forecastTempLow_F = data.forecast[i].high_f;
+            let forecastTempLow_F = data.forecast[i].low_f;
 
             divForecast.innerHTML = `
             ${data.forecast[i].day}
