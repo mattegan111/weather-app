@@ -1,14 +1,47 @@
 import { DateTime } from 'luxon';
 import './style.css';
-import './queenstown-tree.jpg';
+import './beach.jpg';
+import './desert.jpg';
+import './island.jpg';
 
 onLoad();
 
 async function onLoad() {
-    const dummyLocation = 'Wellington';
-    const dummyMeasurement = 'metric';
-    const data = await getData(dummyLocation, dummyMeasurement);
+    const defaultLocation = 'London';
+    const defaultMeasurement = 'metric';
+    const data = await getData(defaultLocation, defaultMeasurement);
     render(data);
+    instantiateClockUpdater();
+};
+
+function instantiateClockUpdater() {
+    const clockUpdaterInstance = new clockUpdater();
+    clockUpdaterInstance.start();
+};
+
+class clockUpdater {
+    start() {
+        this.update();
+
+        setInterval(() => {
+            this.update();
+        }, 500);
+    };
+
+    update() {
+        let timezone = document.getElementById('clock').dataset.timezone;
+
+        if(timezone !== undefined && timezone !== null) {
+            let time = DateTime.now().setZone(timezone).toFormat("h':'mm':'ss' 'a");
+            const clockElement = document.getElementById('clock');
+            clockElement.innerHTML = time;
+            const divCurrentDateTime = document.getElementById('currentDateTime');
+            divCurrentDateTime.appendChild(clockElement);
+        }
+        else {
+            console.log('time failed to update');
+        }
+    };
 };
 
 async function getData(userSearch, measurement) {
@@ -19,7 +52,7 @@ async function getData(userSearch, measurement) {
     const forecast = await getForecast(currentWeather.coord.lat, currentWeather.coord.lon);
 
     // Get time data with better accuracy.
-    const dateTime = buildDateTime(forecast);
+    const dateTime = DateTime;
 
     // Build data object and return
     const data = buildData(currentWeather, forecast, dateTime, measurement);
@@ -47,16 +80,16 @@ function getForecast(lat, lon) {
     return APIResponse;
 };
 
-function buildDateTime(forecast) {
+/* function buildDateTime(forecast) {
     const dateTime = DateTime;
-    dateTime.local().setZone(forecast.timezone);
+    // dateTime.local().setZone(forecast.timezone);
 
     return dateTime;
-};
+}; */
 
 function buildData(currentWeatherInput, forecastInput, dateTimeInput, measurementInput) {
 
-    console.log(forecastInput.daily[0].weather.icon);
+    // console.log(forecastInput.daily[0].weather.icon);
 
     var current = {
         conditions: currentWeatherInput.weather[0].main,
@@ -73,7 +106,7 @@ function buildData(currentWeatherInput, forecastInput, dateTimeInput, measuremen
     for (let i=0; i<forecastLength; i++) {
         let dayNumber = i + 1;
         forecast[i] = {
-            day: dateTimeInput.now().plus({ days: dayNumber}).toFormat('ccc'),
+            day: dateTimeInput.now().setZone(forecastInput.timezone).plus({ days: dayNumber}).toFormat('ccc'),
             icon: forecastInput.daily[i].weather[0].icon,
             high_f: Math.round(convertKelvinToFahrenheit(forecastInput.daily[i].temp.max)),
             high_c: Math.round(convertKelvinToCelcius(forecastInput.daily[i].temp.max)),
@@ -87,6 +120,7 @@ function buildData(currentWeatherInput, forecastInput, dateTimeInput, measuremen
         current: current,
         forecast: forecast,
         dateTime: dateTimeInput,
+        timezone: forecastInput.timezone,
         measurement: measurementInput
     };
 
@@ -110,62 +144,84 @@ function convertMpsToMph(mps) {
 };
 
 function render(data) {
-    let body = document.getElementById('body');
-    body.innerHTML = '<script src="main.js"></script>';
-
+    renderBody();
+    renderLocationDateTime(data);
     renderCurrentWeather(data);
     renderForecast(data);
+    renderChangeBackgroundSelect();
 };
 
-function renderCurrentWeather(data) {
+function renderBody() {
+    let body = document.getElementById('body');
+    body.innerHTML = '<script src="main.js"></script>';
+    body.classList.add('background-island');
+}
+
+function renderLocationDateTime(data){
     // Build out div structure
     let body = document.getElementById('body');
 
-    let divCurrentParent = document.createElement('div');
-    divCurrentParent.id = 'currentParent';
-    body.appendChild(divCurrentParent);
-    divCurrentParent = document.getElementById('currentParent');
+    let divLocationDateTimeParent = document.createElement('div');
+    divLocationDateTimeParent.id = 'locationDateTimeParent';
+    body.appendChild(divLocationDateTimeParent);
+    divLocationDateTimeParent = document.getElementById('locationDateTimeParent');
     
     let divCurrentDateTime = document.createElement('div');
     divCurrentDateTime.id = 'currentDateTime';
-    divCurrentParent.appendChild(divCurrentDateTime);
+    divLocationDateTimeParent.appendChild(divCurrentDateTime);
     divCurrentDateTime = document.getElementById('currentDateTime');
-
-    let divCurrentConditions = document.createElement('div');
-    divCurrentConditions.id = 'currentConditions';
-    divCurrentParent.appendChild(divCurrentConditions);
-    divCurrentConditions = document.getElementById('currentConditions');
-
-    let divCurrentHumidityWind = document.createElement('div');
-    divCurrentHumidityWind.id = 'currentHumidityWind';
-    divCurrentParent.appendChild(divCurrentHumidityWind);
-    divCurrentHumidityWind = document.getElementById('currentHumidityWind');
-
-    let divSearch = document.createElement('div');
-    divSearch.id = 'search';
-    body.appendChild(divSearch);
-    divSearch = document.getElementById('search');
-
 
     // Fill divCurrentDateTime
     const cityNameElement = document.createElement('h2');
     cityNameElement.innerHTML = data.city;
     divCurrentDateTime.appendChild(cityNameElement);
 
-    const clockElement = document.createElement('h3');
-    clockElement.id = 'clock';
-    clockElement.innerHTML = data.dateTime.now().toFormat("h':'mm' 'a");
-    divCurrentDateTime.appendChild(clockElement);
-
-    const clockObject = new clockUpdater();
-    clockObject.start();
-
     const dateElement = document.createElement('h3');
-    const dayOfWeek = data.dateTime.now().toFormat('EEEE');
-    const dayMonthYear = data.dateTime.now().toFormat('d LLLL yyyy');
+    const dayOfWeek = data.dateTime.now().setZone(data.timezone).toFormat('EEEE');
+    const dayMonthYear = data.dateTime.now().setZone(data.timezone).toFormat('d LLLL yyyy');
     dateElement.innerHTML = `${dayOfWeek}, ${dayMonthYear}`;
     divCurrentDateTime.appendChild(dateElement);
 
+    const clockElement = document.createElement('h3');
+    clockElement.id = 'clock';
+    clockElement.dataset.timezone = data.timezone;
+    clockElement.innerHTML = data.dateTime.now().setZone(data.forecast.timezone).toFormat("h':'mm':'ss' 'a");
+    divCurrentDateTime.appendChild(clockElement);
+
+    const clockObject = new clockUpdater(data.timezone);
+    //clockObject.setTimezone(data.forecast.timezone);
+    //clockObject.start();
+}
+
+function renderCurrentWeather(data) {
+    // Build out div structure
+
+    let body = document.getElementById('body');
+
+    let divCurrentParent = document.createElement('div');
+    divCurrentParent.id = 'currentParent';
+    body.appendChild(divCurrentParent);
+    divCurrentParent = document.getElementById('currentParent');
+
+    let divCurrentWeather = document.createElement('div');
+    divCurrentWeather.id = 'currentWeather';
+    divCurrentParent.appendChild(divCurrentWeather);
+    divCurrentWeather = document.getElementById('currentWeather');
+
+    let divCurrentConditions = document.createElement('div');
+    divCurrentConditions.id = 'currentConditions';
+    divCurrentWeather.appendChild(divCurrentConditions);
+    divCurrentConditions = document.getElementById('currentConditions');
+
+/*     let divCurrentHumidityWind = document.createElement('div');
+    divCurrentHumidityWind.id = 'currentHumidityWind';
+    divCurrentWeather.appendChild(divCurrentHumidityWind);
+    divCurrentHumidityWind = document.getElementById('currentHumidityWind'); */
+
+    let divUserInputs = document.createElement('div');
+    divUserInputs.id = 'userInputs';
+    divCurrentWeather.appendChild(divUserInputs);
+    divUserInputs = document.getElementById('userInputs');
 
     // Fill divCurrentConditions
     let img = new Image;
@@ -195,6 +251,7 @@ function renderCurrentWeather(data) {
     else if (data.measurement == 'imperial') {
         measurementButton.innerHTML = '℃ ▶ ℉';
     }
+
     measurementButton.id = 'measurement';
     divCurrentConditions.appendChild(measurementButton);
     measurementButton = document.getElementById('measurement');
@@ -211,10 +268,9 @@ function renderCurrentWeather(data) {
         convertElements();
     })
 
-    //Fill divCurrentHumidityWind
     const humidityElement = document.createElement('P');
     humidityElement.innerHTML = `Humidity: ${data.current.humidity}%`;
-    divCurrentHumidityWind.appendChild(humidityElement);
+    divCurrentConditions.appendChild(humidityElement);
     
     const windElement = document.createElement('P');
     windElement.classList.add('convertible', 'speed', data.measurement);
@@ -226,12 +282,12 @@ function renderCurrentWeather(data) {
     else if (data.measurement == 'metric') {
         windElement.innerHTML = `Wind: ${data.current.wind_speed_kph} kph`;
     }
-    divCurrentHumidityWind.appendChild(windElement);
+    divCurrentConditions.appendChild(windElement);
 
-    //Fill divSearch
+    //Fill divUserInputs
     let form = document.createElement('FORM');
     form.id = 'form';
-    divSearch.appendChild(form);
+    divUserInputs.appendChild(form);
     form = document.getElementById('form');
 
     let inputField = document.createElement('INPUT');
@@ -261,51 +317,92 @@ function renderForecast(data) {
     // Build out div structure
     let body = document.getElementById('body');
 
-    //console.log('data' + data);
-    //console.log('data.forecast' + data.forecast);
-
-
     let divForecastParent = document.createElement('div');
     divForecastParent.id = 'forecastParent';
     body.appendChild(divForecastParent);
     divForecastParent = document.getElementById('forecastParent');
+
+    let divForecastWeather = document.createElement('div');
+    divForecastWeather.id = 'forecastWeather';
+    divForecastParent.appendChild(divForecastWeather);
+    divForecastWeather = document.getElementById('forecastWeather');
     
     // Render each forecasted day
     let i;
     for(i = 0; i < 7; i++) {
-        let divForecast = document.createElement('div');
-        divForecast.id = `divForecast${[i]}`;
+        let divForecastDay = document.createElement('div');
+        divForecastDay.id = `divForecastDay${[i]}`;
         let imgURL = `http://openweathermap.org/img/w/${data.forecast[i].icon}.png`;
 
         if (data.measurement == 'imperial') {
             let forecastTempHigh_F = data.forecast[i].high_f;
             let forecastTempLow_F = data.forecast[i].low_f;
 
-            divForecast.innerHTML = `
+            divForecastDay.innerHTML = `
             ${data.forecast[i].day}
             <img src="${imgURL}">
             <div id="temp${i}H" class="convertible temp imperial">${forecastTempHigh_F}℉</div>
             <div id="temp${i}L" class="convertible temp imperial">${forecastTempLow_F}℉</div>
             `;
 
-            divForecastParent.appendChild(divForecast);
-            divForecast = document.getElementById(`divForecast${[i]}`);
+            divForecastWeather.appendChild(divForecastDay);
+            // divForecastDay = document.getElementById(`divForecastDay${[i]}`);
         }
         else if (data.measurement == 'metric') {
             let forecastTempHigh_C = data.forecast[i].high_c;
             let forecastTempLow_C = data.forecast[i].low_c;
 
-            divForecast.innerHTML = `
+            divForecastDay.innerHTML = `
             ${data.forecast[i].day}
             <img src="${imgURL}">
             <div id="temp${i}H" class="convertible temp metric">${forecastTempHigh_C}℃</div>
             <div id="temp${i}L" class="convertible temp metric">${forecastTempLow_C}℃</div>
             `;
 
-            divForecastParent.appendChild(divForecast);
-            divForecast = document.getElementById(`divForecast${[i]}`);
+            divForecastWeather.appendChild(divForecastDay);
+            // divForecastDay = document.getElementById(`divForecastDay${[i]}`);
         }
     };
+};
+
+function renderChangeBackgroundSelect() {
+    let body = document.getElementById('body');
+
+    let divBackgroundSelectParent = document.createElement('div');
+    divBackgroundSelectParent.id = 'backgroundSelectParent'
+    body.appendChild(divBackgroundSelectParent);
+    divBackgroundSelectParent = document.getElementById('backgroundSelectParent');
+
+    let changeBackgroundSelect = document.createElement('SELECT');
+    changeBackgroundSelect.id = 'backgroundSelect';
+    divBackgroundSelectParent.appendChild(changeBackgroundSelect);
+    changeBackgroundSelect = document.getElementById('backgroundSelect');
+
+    let backgroundNames = ['Island', 'Desert', 'Beach'];
+
+    backgroundNames.forEach(backgroundName => {
+        let item = document.createElement('OPTION');
+        item.value = backgroundName.toLowerCase();
+        item.innerHTML = backgroundName;
+        changeBackgroundSelect.appendChild(item);
+    })
+
+    changeBackgroundSelect.addEventListener('change', (e) => {
+        e.preventDefault();
+        switch (changeBackgroundSelect.value) {
+            case 'beach':
+              body.className = '';
+              body.classList.add("background-beach");
+              break;
+            case 'desert':
+                body.className = '';
+                body.classList.add("background-desert");
+              break;
+            case 'island':
+                body.className = '';
+                body.classList.add("background-island");
+        }
+    })
 };
 
 function convertElements() {
@@ -356,58 +453,3 @@ function conversionUtility(element) {
         };
     };
 };
-
-class clockUpdater {
-    constructor(element) {
-        this.element = element;
-        this.element = DateTime.now().toFormat("h':'mm':'ss' 'a");
-    };
-
-    start() {
-        this.update();
-
-        setInterval(() => {
-            this.update();
-        }, 10);
-    };
-
-    update() {
-        this.element = DateTime.now().toFormat("h':'mm':'ss' 'a");
-        const clockElement = document.getElementById('clock');
-        clockElement.innerHTML = this.element;
-        const divCurrentDateTime = document.getElementById('currentDateTime');
-        divCurrentDateTime.appendChild(clockElement);
-    };
-};
-
-
-/* function buildDateTimeLegacy(timeAPI) {
-    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-    var timeAPI = new Date(timeAPI.datetime);
-
-    //Question for LUKE, how can I better organise the contents of this object?
-    const dateObject = {};
-    dateObject.yearNumeric = timeAPI.getFullYear();
-    dateObject.monthNumeric = timeAPI.getMonth();
-    dateObject.dayOfMonth.Numeric = timeAPI.getDate();
-    dateObject.dayOfWeekNumeric = timeAPI.getDay();
-    dateObject.monthText = monthsOfYear[dateObject.monthNumeric - 1];
-    dateObject.dayOfWeekText = daysOfWeek[dateObject.dayOfWeekNumeric - 1];
-    dateObject.hours = timeAPI.getHours();
-    dateObject.minutes = timeAPI.getMinutes();
-    dateObject.seconds = timeAPI.getSeconds();
-
-    return dateObject;
-}; */
-
-/* function buildCoord(currentWeather) {
-    const coordData = {
-      name: currentWeather.name,
-      lat: currentWeather.coord.lat,
-      lon: currentWeather.coord.lon
-    };
-  
-    return coordData;
-}; */

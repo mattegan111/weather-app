@@ -1,12 +1,168 @@
-h1 {
-    color: red;
+* {
+    color: rgb(44, 44, 44);
 }
 
 body {
-    background-image: url('queenstown-tree.jpg');
     margin: 0px;
+    height: 100vh;
+    display:flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-content: space-between;
+    overflow: hidden;
+}
+
+.background-beach {
+    background: url('beach.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+.background-desert {
+    background: url('desert.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+.background-island {
+    background: url('island.jpg') no-repeat center center fixed;
+    background-size: cover;
 }
 
 html {
     font-family: sans-serif;
+}
+
+h1 {
+
+}
+
+h2 {
+
+}
+
+h3 {
+
+}
+
+p {
+    
+}
+
+#locationDateTimeParent {
+    display:flex;
+    /* background: yellowgreen; */
+    width: calc(50% - 40px);
+    flex-direction: column;
+    padding: 20px 20px 20px 20px;
+}
+
+#currentParent {
+    display:flex;
+    /* background: yellow; */
+    width: calc(50% - 40px);
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 20px 20px 20px 20px;
+    text-align: end;
+}
+
+#forecastParent {
+    display:flex;
+    /* background: orange; */
+    width: 50%;
+    margin: 0px 0px 20px 0px;
+    justify-content: center;
+    transform: translate(50%, 0px);
+}
+
+#backgroundSelectParent {
+    display:flex;
+    /* background: red; */
+    width: minmax(70px, 70px);
+    margin: 0px 20px 20px 0px;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+#currentDateTime {
+    width: 180px;
+    height: minmax(148px, 148px);
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.80);
+    border-radius: 14px;
+    box-shadow:  4px 4px 15px rgb(0 0 0 / 30%), rgba(0 0 0 / 25%) 0px 0px 20px 0px inset;
+}
+
+#currentDateTime > * {
+    margin: 0px;
+}
+
+#currentDateTime > h2 {
+    margin-bottom: 10px;
+}
+
+#clock {
+    margin-top: 10px;
+}
+
+#currentWeather {
+    padding: 10px 10px 20px 10px;
+    background-color: rgba(255, 255, 255, 0.80);
+    border-radius: 14px;
+    box-shadow:  4px 4px 15px rgb(0 0 0 / 30%), rgba(0 0 0 / 25%) 0px 0px 20px 0px inset;
+}
+
+#currentConditions > * {
+    margin: 0px;
+    padding: 0px;
+}
+
+#currentConditions > img{
+    margin: 0px -5px -10px -5px;
+}
+
+#currentConditions > p {
+    margin: 5px 0px 5px 0px;
+}
+
+#currentConditions > h1{
+    margin: 15px 0px 0px 0px;
+}
+
+#currentConditions > button {
+    margin-bottom: 25px;
+    width: 60px;
+    border-radius: 3px;
+    border: grey solid 1px;
+    text-align: center;
+    padding-right: 2px;
+}
+
+#forecastWeather {
+    display:flex;
+/*     width: 180px;
+    height: minmax(148px, 148px); */
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.65);
+    border-radius: 14px;
+    box-shadow:  4px 4px 15px rgb(0 0 0 / 30%), rgba(0 0 0 / 35%) 0px 0px 20px 0px inset;
+}
+
+#forecastWeather > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 4px 12px 4px 12px;
+}
+
+#form {
+    margin: 25px 0px 0px 0px;
+}
+
+#form > input {
+    width: 120px;
+}
+
+#measurement {
+    margin: 5px 0px 5px 0px;
 }
