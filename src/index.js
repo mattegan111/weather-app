@@ -3,61 +3,60 @@ import './style.css';
 import './beach.jpg';
 import './desert.jpg';
 import './island.jpg';
+var countryFormats = require("i18n-iso-countries");
+countryFormats.registerLocale(require("i18n-iso-countries/langs/en.json"));
 
 onLoad();
 
 async function onLoad() {
-    const defaultLocation = 'London';
+    const defaultLocation = 'Wellington, New Zealand';
     const defaultMeasurement = 'metric';
     const data = await getData(defaultLocation, defaultMeasurement);
     render(data);
     instantiateClockUpdater();
 };
 
-function instantiateClockUpdater() {
-    const clockUpdaterInstance = new clockUpdater();
-    clockUpdaterInstance.start();
-};
-
-class clockUpdater {
-    start() {
-        this.update();
-
-        setInterval(() => {
-            this.update();
-        }, 500);
-    };
-
-    update() {
-        let timezone = document.getElementById('clock').dataset.timezone;
-
-        if(timezone !== undefined && timezone !== null) {
-            let time = DateTime.now().setZone(timezone).toFormat("h':'mm':'ss' 'a");
-            const clockElement = document.getElementById('clock');
-            clockElement.innerHTML = time;
-            const divCurrentDateTime = document.getElementById('currentDateTime');
-            divCurrentDateTime.appendChild(clockElement);
-        }
-        else {
-            console.log('time failed to update');
-        }
-    };
-};
-
 async function getData(userSearch, measurement) {
-    //First API call to get current weather and coordinates of user search location.
-    const currentWeather = await getCurrentWeather(userSearch);
+    //Encode country name in userSearch to ISO code
+    const formattedUserSearch = formatSearch(userSearch);
+
+    //First API call to get current weather and coordinates of userSearch location.
+    const currentWeather = await getCurrentWeather(formattedUserSearch);
 
     //Second API call to get forecast, based off coords from first API call.
     const forecast = await getForecast(currentWeather.coord.lat, currentWeather.coord.lon);
 
-    // Get time data with better accuracy.
+    // Get more accurate time data.
     const dateTime = DateTime;
 
     // Build data object and return
     const data = buildData(currentWeather, forecast, dateTime, measurement);
 
     return data;
+};
+
+function formatSearch(userSearch) {
+    userSearch = userSearch.trim();
+
+    if(userSearch.includes(',')) {
+        let userSearchSplit = userSearch.split(',');
+
+        userSearchSplit[userSearchSplit.length - 1] 
+        = countryFormats.getAlpha2Code(userSearchSplit[userSearchSplit.length - 1].trim(), "en");
+    
+        return userSearchSplit.toString();
+    }
+    else if(userSearch.includes(' ') == true){
+        let userSearchSplit = userSearch.split(' ');
+
+        userSearchSplit[userSearchSplit.length - 1] 
+        = countryFormats.getAlpha2Code(userSearchSplit[userSearchSplit.length - 1].trim(), "en");
+    
+        return userSearchSplit.toString();
+    }
+    else {
+        return userSearch;
+    }
 };
 
 function getCurrentWeather(userSearch) {
@@ -80,17 +79,7 @@ function getForecast(lat, lon) {
     return APIResponse;
 };
 
-/* function buildDateTime(forecast) {
-    const dateTime = DateTime;
-    // dateTime.local().setZone(forecast.timezone);
-
-    return dateTime;
-}; */
-
 function buildData(currentWeatherInput, forecastInput, dateTimeInput, measurementInput) {
-
-    // console.log(forecastInput.daily[0].weather.icon);
-
     var current = {
         conditions: currentWeatherInput.weather[0].main,
         temp_f: Math.round(convertKelvinToFahrenheit(currentWeatherInput.main.temp)),
@@ -117,6 +106,7 @@ function buildData(currentWeatherInput, forecastInput, dateTimeInput, measuremen
 
     const data = {
         city: currentWeatherInput.name,
+        country: countryFormats.getName(currentWeatherInput.sys.country, "en", {select: "official"}),
         current: current,
         forecast: forecast,
         dateTime: dateTimeInput,
@@ -172,9 +162,9 @@ function renderLocationDateTime(data){
     divCurrentDateTime = document.getElementById('currentDateTime');
 
     // Fill divCurrentDateTime
-    const cityNameElement = document.createElement('h2');
-    cityNameElement.innerHTML = data.city;
-    divCurrentDateTime.appendChild(cityNameElement);
+    const locationElement = document.createElement('h2');
+    locationElement.innerHTML = `${data.city}, ${data.country}`;
+    divCurrentDateTime.appendChild(locationElement);
 
     const dateElement = document.createElement('h3');
     const dayOfWeek = data.dateTime.now().setZone(data.timezone).toFormat('EEEE');
@@ -187,10 +177,6 @@ function renderLocationDateTime(data){
     clockElement.dataset.timezone = data.timezone;
     clockElement.innerHTML = data.dateTime.now().setZone(data.forecast.timezone).toFormat("h':'mm':'ss' 'a");
     divCurrentDateTime.appendChild(clockElement);
-
-    const clockObject = new clockUpdater(data.timezone);
-    //clockObject.setTimezone(data.forecast.timezone);
-    //clockObject.start();
 }
 
 function renderCurrentWeather(data) {
@@ -212,11 +198,6 @@ function renderCurrentWeather(data) {
     divCurrentConditions.id = 'currentConditions';
     divCurrentWeather.appendChild(divCurrentConditions);
     divCurrentConditions = document.getElementById('currentConditions');
-
-/*     let divCurrentHumidityWind = document.createElement('div');
-    divCurrentHumidityWind.id = 'currentHumidityWind';
-    divCurrentWeather.appendChild(divCurrentHumidityWind);
-    divCurrentHumidityWind = document.getElementById('currentHumidityWind'); */
 
     let divUserInputs = document.createElement('div');
     divUserInputs.id = 'userInputs';
@@ -293,12 +274,13 @@ function renderCurrentWeather(data) {
     let inputField = document.createElement('INPUT');
     inputField.type = 'text';
     inputField.id = 'input';
+    inputField.placeholder = 'Wellington, New Zealand';
     form.appendChild(inputField);
     inputField = document.getElementById('input');
 
     let submitButton = document.createElement('BUTTON');
     submitButton.id = 'submit';
-    submitButton.innerHTML = 'Submit';
+    submitButton.innerHTML = 'Search';
     form.appendChild(submitButton);
     submitButton = document.getElementById('submit');
 
@@ -311,6 +293,11 @@ function renderCurrentWeather(data) {
         const newData = await getData(userSearch, data.measurement);
         render(newData);
     };
+
+    let inputInstructions = document.createElement('p');
+    inputInstructions.innerHTML = 'Enter your city and your country seperated by a comma.';
+    inputInstructions.id = 'inputInstructions';
+    divUserInputs.appendChild(inputInstructions);
 };
 
 function renderForecast(data) {
@@ -346,7 +333,6 @@ function renderForecast(data) {
             `;
 
             divForecastWeather.appendChild(divForecastDay);
-            // divForecastDay = document.getElementById(`divForecastDay${[i]}`);
         }
         else if (data.measurement == 'metric') {
             let forecastTempHigh_C = data.forecast[i].high_c;
@@ -360,7 +346,6 @@ function renderForecast(data) {
             `;
 
             divForecastWeather.appendChild(divForecastDay);
-            // divForecastDay = document.getElementById(`divForecastDay${[i]}`);
         }
     };
 };
@@ -451,5 +436,35 @@ function conversionUtility(element) {
             newElement.classList.remove('imperial');
             newElement.classList.add('metric');
         };
+    };
+};
+
+function instantiateClockUpdater() {
+    const clockUpdaterInstance = new clockUpdater();
+    clockUpdaterInstance.start();
+};
+
+class clockUpdater {
+    start() {
+        this.update();
+
+        setInterval(() => {
+            this.update();
+        }, 500);
+    };
+
+    update() {
+        let timezone = document.getElementById('clock').dataset.timezone;
+
+        if(timezone !== undefined && timezone !== null) {
+            let time = DateTime.now().setZone(timezone).toFormat("h':'mm':'ss' 'a");
+            const clockElement = document.getElementById('clock');
+            clockElement.innerHTML = time;
+            const divCurrentDateTime = document.getElementById('currentDateTime');
+            divCurrentDateTime.appendChild(clockElement);
+        }
+        else {
+            console.log('time failed to update');
+        }
     };
 };

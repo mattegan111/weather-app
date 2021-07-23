@@ -20,6 +20,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "i18n-iso-countries": "^6.8.0",
     "luxon": "^1.26.0"
   }
 }
