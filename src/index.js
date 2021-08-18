@@ -25,7 +25,6 @@ async function onLoad() {
 async function getData(userSearch, measurement) {
     //Encode country name in userSearch to ISO code
     const formattedUserSearch = formatSearch(userSearch);
-    console.log(formattedUserSearch);
 
     //First API call to get current weather and coordinates of userSearch location.
     const currentWeather = await getCurrentWeather(formattedUserSearch);
@@ -37,7 +36,7 @@ async function getData(userSearch, measurement) {
     const dateTime = DateTime;
 
     // Build data object and return
-    const data = buildData(currentWeather, forecast, dateTime, measurement);
+    const data = buildData(userSearch, currentWeather, forecast, dateTime, measurement);
 
     return data;
 };
@@ -84,8 +83,8 @@ function getForecast(lat, lon) {
     return APIResponse;
 };
 
-function buildData(currentWeatherInput, forecastInput, dateTimeInput, measurementInput) {
-    var current = {
+function buildData(userSearch, currentWeatherInput, forecastInput, dateTimeInput, measurementInput) {
+    const current = {
         conditions: currentWeatherInput.weather[0].main,
         temp_f: Math.round(convertKelvinToFahrenheit(currentWeatherInput.main.temp)),
         temp_c: Math.round(convertKelvinToCelcius(currentWeatherInput.main.temp)),
@@ -111,6 +110,7 @@ function buildData(currentWeatherInput, forecastInput, dateTimeInput, measuremen
 
     const data = {
         city: currentWeatherInput.name,
+        state: stateFormats.getStateNameByStateCode(userSearch.state),
         country: countryFormats.getName(currentWeatherInput.sys.country, "en", {select: "official"}),
         current: current,
         forecast: forecast,
@@ -167,17 +167,22 @@ function renderLocationDateTime(data){
     divCurrentDateTime = document.getElementById('currentDateTime');
 
     // Fill divCurrentDateTime
-    const locationElement = document.createElement('h2');
-    locationElement.innerHTML = `${data.city}, ${data.country}`;
+    const locationElement = document.createElement('h1');
+    if (data.state) {
+        locationElement.innerHTML = `${data.city}, ${data.state},${data.country}`;
+    } 
+    else {
+        locationElement.innerHTML = `${data.city}, ${data.country}`;
+    }
     divCurrentDateTime.appendChild(locationElement);
 
-    const dateElement = document.createElement('h3');
+    const dateElement = document.createElement('h2');
     const dayOfWeek = data.dateTime.now().setZone(data.timezone).toFormat('EEEE');
     const dayMonthYear = data.dateTime.now().setZone(data.timezone).toFormat('d LLLL yyyy');
     dateElement.innerHTML = `${dayOfWeek}, ${dayMonthYear}`;
     divCurrentDateTime.appendChild(dateElement);
 
-    const clockElement = document.createElement('h3');
+    const clockElement = document.createElement('h2');
     clockElement.id = 'clock';
     clockElement.dataset.timezone = data.timezone;
     clockElement.innerHTML = data.dateTime.now().setZone(data.forecast.timezone).toFormat("h':'mm':'ss' 'a");
@@ -271,7 +276,7 @@ function renderCurrentWeather(data) {
 
     //Fill divUserInputs
     let inputInstructions = document.createElement('h3');
-    inputInstructions.innerHTML = 'Search';
+    inputInstructions.innerHTML = 'Weather Search:';
     inputInstructions.id = 'inputInstructions';
     divUserInputs.appendChild(inputInstructions);
 
