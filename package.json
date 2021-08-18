@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "i18n-iso-countries": "^6.8.0",
-    "luxon": "^1.26.0"
+    "luxon": "^1.26.0",
+    "us-state-codes": "^1.1.2"
   }
 }

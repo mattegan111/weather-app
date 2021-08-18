@@ -3,13 +3,19 @@ import './style.css';
 import './beach.jpg';
 import './desert.jpg';
 import './island.jpg';
-var countryFormats = require("i18n-iso-countries");
-countryFormats.registerLocale(require("i18n-iso-countries/langs/en.json"));
+let countryFormats = require('i18n-iso-countries');
+countryFormats.registerLocale(require('i18n-iso-countries/langs/en.json'));
+let stateFormats = require('us-state-codes');
 
 onLoad();
 
 async function onLoad() {
-    const defaultLocation = 'Wellington, New Zealand';
+    const defaultLocation = 
+    {
+        city: 'Wellington',
+        state: '',
+        country: 'New Zealand'
+    };
     const defaultMeasurement = 'metric';
     const data = await getData(defaultLocation, defaultMeasurement);
     render(data);
@@ -19,6 +25,7 @@ async function onLoad() {
 async function getData(userSearch, measurement) {
     //Encode country name in userSearch to ISO code
     const formattedUserSearch = formatSearch(userSearch);
+    console.log(formattedUserSearch);
 
     //First API call to get current weather and coordinates of userSearch location.
     const currentWeather = await getCurrentWeather(formattedUserSearch);
@@ -36,27 +43,25 @@ async function getData(userSearch, measurement) {
 };
 
 function formatSearch(userSearch) {
-    userSearch = userSearch.trim();
+    let userSearchFormatted = '';
 
-    if(userSearch.includes(',')) {
-        let userSearchSplit = userSearch.split(',');
+    if(userSearch.city != '') { userSearchFormatted += `${userSearch.city},`; }
 
-        userSearchSplit[userSearchSplit.length - 1] 
-        = countryFormats.getAlpha2Code(userSearchSplit[userSearchSplit.length - 1].trim(), "en");
-    
-        return userSearchSplit.toString();
+    if(userSearch.state != '') { 
+        userSearch.state = stateFormats.getStateCodeByStateName(userSearch.state);
+        userSearchFormatted += `${userSearch.state},`; 
     }
-    else if(userSearch.includes(' ') == true){
-        let userSearchSplit = userSearch.split(' ');
 
-        userSearchSplit[userSearchSplit.length - 1] 
-        = countryFormats.getAlpha2Code(userSearchSplit[userSearchSplit.length - 1].trim(), "en");
-    
-        return userSearchSplit.toString();
+    if(userSearch.country != '') { 
+        userSearch.country = countryFormats.getAlpha2Code(userSearch.country, 'en');
+        userSearchFormatted += userSearch.country; 
     }
-    else {
-        return userSearch;
+
+    if(userSearchFormatted.slice(-1) === ',') { 
+        userSearchFormatted = userSearchFormatted.substring(0, userSearchFormatted.length - 1);
     }
+
+    return userSearchFormatted
 };
 
 function getCurrentWeather(userSearch) {
@@ -181,7 +186,6 @@ function renderLocationDateTime(data){
 
 function renderCurrentWeather(data) {
     // Build out div structure
-
     let body = document.getElementById('body');
 
     let divCurrentParent = document.createElement('div');
@@ -266,17 +270,40 @@ function renderCurrentWeather(data) {
     divCurrentConditions.appendChild(windElement);
 
     //Fill divUserInputs
+    let inputInstructions = document.createElement('h3');
+    inputInstructions.innerHTML = 'Search';
+    inputInstructions.id = 'inputInstructions';
+    divUserInputs.appendChild(inputInstructions);
+
     let form = document.createElement('FORM');
     form.id = 'form';
     divUserInputs.appendChild(form);
     form = document.getElementById('form');
 
-    let inputField = document.createElement('INPUT');
-    inputField.type = 'text';
-    inputField.id = 'input';
-    inputField.placeholder = 'Wellington, New Zealand';
-    form.appendChild(inputField);
-    inputField = document.getElementById('input');
+    let cityInputField = document.createElement('INPUT');
+    cityInputField.type = 'text';
+    cityInputField.id = 'city-input';
+    cityInputField.required = true;
+    cityInputField.placeholder = 'City';
+    form.appendChild(cityInputField);
+    cityInputField = document.getElementById('input');
+
+    let stateInputField = document.createElement('INPUT');
+    stateInputField.type = 'text';
+    stateInputField.id = 'state-input';
+    stateInputField.placeholder = 'State ';
+    form.appendChild(stateInputField);
+    stateInputField = document.getElementById('input');
+
+    let countryInputField = document.createElement('INPUT');
+    countryInputField.type = 'text';
+    countryInputField.id = 'country-input';
+    countryInputField.placeholder = 'Country';
+    form.appendChild(countryInputField);
+    countryInputField = document.getElementById('input');
+
+    let lineBreak = document.createElement('br');
+    form.appendChild(lineBreak);
 
     let submitButton = document.createElement('BUTTON');
     submitButton.id = 'submit';
@@ -288,16 +315,20 @@ function renderCurrentWeather(data) {
 
     async function submitEvent(e) {
         e.preventDefault(e);
-        let input = document.getElementById('input');
-        let userSearch = input.value;
+        let userSearch = 
+        {
+            city: '',
+            state: '',
+            country: ''
+        };
+
+        userSearch.city = document.getElementById('city-input').value;
+        userSearch.state = document.getElementById('state-input').value;
+        userSearch.country = document.getElementById('country-input').value;
+
         const newData = await getData(userSearch, data.measurement);
         render(newData);
     };
-
-    let inputInstructions = document.createElement('p');
-    inputInstructions.innerHTML = 'Enter your city and your country seperated by a comma.';
-    inputInstructions.id = 'inputInstructions';
-    divUserInputs.appendChild(inputInstructions);
 };
 
 function renderForecast(data) {

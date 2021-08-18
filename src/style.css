@@ -125,7 +125,7 @@ p {
 }
 
 #inputInstructions {
-    font-size: 8px;
+    margin: 25px 0px 5px 0px;
 }
 
 #currentConditions > * {
@@ -171,7 +171,6 @@ p {
 }
 
 #form {
-    margin: 25px 0px 0px 0px;
 }
 
 #form > input {
