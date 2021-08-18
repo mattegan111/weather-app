@@ -169,7 +169,7 @@ function renderLocationDateTime(data){
     // Fill divCurrentDateTime
     const locationElement = document.createElement('h1');
     if (data.state) {
-        locationElement.innerHTML = `${data.city}, ${data.state},${data.country}`;
+        locationElement.innerHTML = `${data.city}, ${data.state}, ${data.country}`;
     } 
     else {
         locationElement.innerHTML = `${data.city}, ${data.country}`;
