@@ -156,51 +156,67 @@ function renderLocationDateTime(data){
     // Build out div structure
     let body = document.getElementById('body');
 
+    let divMainPanel = document.createElement('div');
+    divMainPanel.id = 'mainPanel';
+    body.appendChild(divMainPanel);
+    divMainPanel = document.getElementById('mainPanel');
+
+    const locationElement = document.createElement('h1');
+    if (data.state) {
+        locationElement.innerHTML = `Weather in ${data.city}, ${data.state}, ${data.country}`;
+    } 
+    else {
+        locationElement.innerHTML = `Weather in ${data.city}, ${data.country}`;
+    }
+    divMainPanel.appendChild(locationElement);
+
+/* 
     let divLocationDateTimeParent = document.createElement('div');
     divLocationDateTimeParent.id = 'locationDateTimeParent';
-    body.appendChild(divLocationDateTimeParent);
+    divMainPanel.appendChild(divLocationDateTimeParent);
     divLocationDateTimeParent = document.getElementById('locationDateTimeParent');
-    
+     */
     let divCurrentDateTime = document.createElement('div');
     divCurrentDateTime.id = 'currentDateTime';
-    divLocationDateTimeParent.appendChild(divCurrentDateTime);
+    divMainPanel.appendChild(divCurrentDateTime);
     divCurrentDateTime = document.getElementById('currentDateTime');
 
     // Fill divCurrentDateTime
-    const locationElement = document.createElement('h1');
-    if (data.state) {
-        locationElement.innerHTML = `${data.city}, ${data.state}, ${data.country}`;
-    } 
-    else {
-        locationElement.innerHTML = `${data.city}, ${data.country}`;
-    }
-    divCurrentDateTime.appendChild(locationElement);
 
-    const dateElement = document.createElement('h2');
-    const dayOfWeek = data.dateTime.now().setZone(data.timezone).toFormat('EEEE');
-    const dayMonthYear = data.dateTime.now().setZone(data.timezone).toFormat('d LLLL yyyy');
-    dateElement.innerHTML = `${dayOfWeek}, ${dayMonthYear}`;
-    divCurrentDateTime.appendChild(dateElement);
+    let clockContainer = document.createElement('div');
+    clockContainer.id = 'clockContainer';
+    divCurrentDateTime.appendChild(clockContainer);
+    clockContainer = document.getElementById('clockContainer');
 
     const clockElement = document.createElement('h2');
     clockElement.id = 'clock';
     clockElement.dataset.timezone = data.timezone;
     clockElement.innerHTML = data.dateTime.now().setZone(data.forecast.timezone).toFormat("h':'mm':'ss' 'a");
-    divCurrentDateTime.appendChild(clockElement);
+    clockContainer.appendChild(clockElement);
+
+    const dateElement = document.createElement('h2');
+    dateElement.id = 'date';
+    const dayOfWeek = data.dateTime.now().setZone(data.timezone).toFormat('EEEE');
+    const dayMonthYear = data.dateTime.now().setZone(data.timezone).toFormat('d LLLL yyyy');
+    dateElement.innerHTML = `${dayOfWeek}, ${dayMonthYear}`;
+    divCurrentDateTime.appendChild(dateElement);
+
+
 }
 
 function renderCurrentWeather(data) {
     // Build out div structure
     let body = document.getElementById('body');
 
-    let divCurrentParent = document.createElement('div');
+/*     let divCurrentParent = document.createElement('div');
     divCurrentParent.id = 'currentParent';
     body.appendChild(divCurrentParent);
-    divCurrentParent = document.getElementById('currentParent');
+    divCurrentParent = document.getElementById('currentParent'); */
 
     let divCurrentWeather = document.createElement('div');
     divCurrentWeather.id = 'currentWeather';
-    divCurrentParent.appendChild(divCurrentWeather);
+    const divMainPanel = document.getElementById('mainPanel');
+    divMainPanel.appendChild(divCurrentWeather);
     divCurrentWeather = document.getElementById('currentWeather');
 
     let divCurrentConditions = document.createElement('div');
@@ -208,31 +224,32 @@ function renderCurrentWeather(data) {
     divCurrentWeather.appendChild(divCurrentConditions);
     divCurrentConditions = document.getElementById('currentConditions');
 
+    let currentTemp = document.createElement('div');
+    currentTemp.id = 'currentTemp';
+    divCurrentConditions.appendChild(currentTemp);
+    currentTemp = document.getElementById('currentTemp');
+
+    let currentDetail = document.createElement('div');
+    currentDetail.id = 'currentDetail';
+    divCurrentConditions.appendChild(currentDetail);
+    currentDetail = document.getElementById('currentDetail');
+
     let divUserInputs = document.createElement('div');
     divUserInputs.id = 'userInputs';
     divCurrentWeather.appendChild(divUserInputs);
     divUserInputs = document.getElementById('userInputs');
 
     // Fill divCurrentConditions
-    let img = new Image;
-    let imgURL = `http://openweathermap.org/img/w/${data.current.icon}.png`
-    img.src = imgURL;
-    divCurrentConditions.appendChild(img);
-
-    const conditionsElement = document.createElement('P');
-    conditionsElement.innerHTML = data.current.conditions;
-    divCurrentConditions.appendChild(conditionsElement);
-
     const tempElement = document.createElement('h1');
     if (data.measurement == 'imperial') {
-        tempElement.innerHTML = `${data.current.temp_f}℉`;
+        tempElement.innerHTML = `${data.current.temp_f}<span>℉</span>`;
     }
     else if (data.measurement == 'metric') {
-        tempElement.innerHTML = `${data.current.temp_c}℃`;
+        tempElement.innerHTML = `${data.current.temp_c}<span>℃</span>`;
     }
     tempElement.id = 'tempA';
     tempElement.classList.add('convertible', 'temp', data.measurement);
-    divCurrentConditions.appendChild(tempElement);
+    currentTemp.appendChild(tempElement);
 
     let measurementButton = document.createElement('BUTTON');
     if(data.measurement == 'metric') {
@@ -243,7 +260,7 @@ function renderCurrentWeather(data) {
     }
 
     measurementButton.id = 'measurement';
-    divCurrentConditions.appendChild(measurementButton);
+    currentTemp.appendChild(measurementButton);
     measurementButton = document.getElementById('measurement');
     measurementButton.addEventListener('click', (e) => {
         e.preventDefault();
@@ -256,11 +273,20 @@ function renderCurrentWeather(data) {
             data.measurement = 'metric';
         }
         convertElements();
-    })
+    });
+
+    let img = new Image;
+    let imgURL = `http://openweathermap.org/img/w/${data.current.icon}.png`
+    img.src = imgURL;
+    currentDetail.appendChild(img);
+
+    const conditionsElement = document.createElement('P');
+    conditionsElement.innerHTML = `Conditions: ${data.current.conditions}`;
+    currentDetail.appendChild(conditionsElement);
 
     const humidityElement = document.createElement('P');
     humidityElement.innerHTML = `Humidity: ${data.current.humidity}%`;
-    divCurrentConditions.appendChild(humidityElement);
+    currentDetail.appendChild(humidityElement);
     
     const windElement = document.createElement('P');
     windElement.classList.add('convertible', 'speed', data.measurement);
@@ -272,11 +298,11 @@ function renderCurrentWeather(data) {
     else if (data.measurement == 'metric') {
         windElement.innerHTML = `Wind: ${data.current.wind_speed_kph} kph`;
     }
-    divCurrentConditions.appendChild(windElement);
+    currentDetail.appendChild(windElement);
 
     //Fill divUserInputs
-    let inputInstructions = document.createElement('h3');
-    inputInstructions.innerHTML = 'Weather Search:';
+    let inputInstructions = document.createElement('p');
+    inputInstructions.innerHTML = 'Search:';
     inputInstructions.id = 'inputInstructions';
     divUserInputs.appendChild(inputInstructions);
 
@@ -377,8 +403,8 @@ function renderForecast(data) {
             divForecastDay.innerHTML = `
             ${data.forecast[i].day}
             <img src="${imgURL}">
-            <div id="temp${i}H" class="convertible temp metric">${forecastTempHigh_C}℃</div>
-            <div id="temp${i}L" class="convertible temp metric">${forecastTempLow_C}℃</div>
+            <div id="temp${i}H" class="convertible temp metric">${forecastTempHigh_C}<span>℃</span></div>
+            <div id="temp${i}L" class="convertible temp metric">${forecastTempLow_C}<span>℃</span></div>
             `;
 
             divForecastWeather.appendChild(divForecastDay);
@@ -437,16 +463,16 @@ function convertElements() {
 function conversionUtility(element) {
     if(element.classList.contains('temp')) {
         if(element.classList.contains('metric')) {
-            let tempC = element.innerHTML.replace('℃', '');
-            let newValue = `${Math.round((tempC * 9/5) + 32)}℉`;
+            let tempC = element.innerHTML.replace('<span>℃</span>', '');
+            let newValue = `${Math.round((tempC * 9/5) + 32)}<span>℉</span>`;
             let newElement = document.getElementById(element.id);
             newElement.innerHTML = newValue;
             newElement.classList.remove('metric');
             newElement.classList.add('imperial');
         }
         else if(element.classList.contains('imperial')) {
-            let tempF = element.innerHTML.replace('℉', '');
-            let newValue = `${Math.round((tempF -32) * 5/9)}℃`;
+            let tempF = element.innerHTML.replace('<span>℉</span>', '');
+            let newValue = `${Math.round((tempF -32) * 5/9)}<span>℃</span>`;
             let newElement = document.getElementById(element.id);
             newElement.innerHTML = newValue;
             newElement.classList.remove('imperial');
@@ -496,8 +522,8 @@ class clockUpdater {
             let time = DateTime.now().setZone(timezone).toFormat("h':'mm':'ss' 'a");
             const clockElement = document.getElementById('clock');
             clockElement.innerHTML = time;
-            const divCurrentDateTime = document.getElementById('currentDateTime');
-            divCurrentDateTime.appendChild(clockElement);
+            const clockContainer = document.getElementById('clockContainer');
+            clockContainer.appendChild(clockElement);
         }
         else {
             console.log('time failed to update');
