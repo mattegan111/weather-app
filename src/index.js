@@ -170,12 +170,6 @@ function renderLocationDateTime(data){
     }
     divMainPanel.appendChild(locationElement);
 
-/* 
-    let divLocationDateTimeParent = document.createElement('div');
-    divLocationDateTimeParent.id = 'locationDateTimeParent';
-    divMainPanel.appendChild(divLocationDateTimeParent);
-    divLocationDateTimeParent = document.getElementById('locationDateTimeParent');
-     */
     let divCurrentDateTime = document.createElement('div');
     divCurrentDateTime.id = 'currentDateTime';
     divMainPanel.appendChild(divCurrentDateTime);
@@ -207,11 +201,6 @@ function renderLocationDateTime(data){
 function renderCurrentWeather(data) {
     // Build out div structure
     let body = document.getElementById('body');
-
-/*     let divCurrentParent = document.createElement('div');
-    divCurrentParent.id = 'currentParent';
-    body.appendChild(divCurrentParent);
-    divCurrentParent = document.getElementById('currentParent'); */
 
     let divCurrentWeather = document.createElement('div');
     divCurrentWeather.id = 'currentWeather';
