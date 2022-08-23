@@ -147,19 +147,13 @@ function render(data) {
 };
 
 function renderBody() {
-    let body = document.getElementById('body');
-    body.innerHTML = '<script src="main.js"></script>';
     body.classList.add('background-island');
 }
 
 function renderLocationDateTime(data){
     // Build out div structure
-    let body = document.getElementById('body');
 
-    let divMainPanel = document.createElement('div');
-    divMainPanel.id = 'mainPanel';
-    body.appendChild(divMainPanel);
-    divMainPanel = document.getElementById('mainPanel');
+    let divMainPanel = document.getElementById('mainPanel');
 
     const locationElement = document.createElement('h1');
     if (data.state) {
@@ -170,10 +164,7 @@ function renderLocationDateTime(data){
     }
     divMainPanel.appendChild(locationElement);
 
-    let divCurrentDateTime = document.createElement('div');
-    divCurrentDateTime.id = 'currentDateTime';
-    divMainPanel.appendChild(divCurrentDateTime);
-    divCurrentDateTime = document.getElementById('currentDateTime');
+    let divCurrentDateTime = document.getElementById('currentDateTime');
 
     // Fill divCurrentDateTime
 
@@ -200,13 +191,8 @@ function renderLocationDateTime(data){
 
 function renderCurrentWeather(data) {
     // Build out div structure
-    let body = document.getElementById('body');
 
-    let divCurrentWeather = document.createElement('div');
-    divCurrentWeather.id = 'currentWeather';
-    const divMainPanel = document.getElementById('mainPanel');
-    divMainPanel.appendChild(divCurrentWeather);
-    divCurrentWeather = document.getElementById('currentWeather');
+    let divCurrentWeather = document.getElementById('currentWeather');
 
     let divCurrentConditions = document.createElement('div');
     divCurrentConditions.id = 'currentConditions';
@@ -353,12 +339,8 @@ function renderCurrentWeather(data) {
 
 function renderForecast(data) {
     // Build out div structure
-    let body = document.getElementById('body');
 
-    let divForecastParent = document.createElement('div');
-    divForecastParent.id = 'forecastParent';
-    body.appendChild(divForecastParent);
-    divForecastParent = document.getElementById('forecastParent');
+    let divForecastParent = document.getElementById('forecastParent');
 
     let divForecastWeather = document.createElement('div');
     divForecastWeather.id = 'forecastWeather';
@@ -404,15 +386,7 @@ function renderForecast(data) {
 function renderChangeBackgroundSelect() {
     let body = document.getElementById('body');
 
-    let divBackgroundSelectParent = document.createElement('div');
-    divBackgroundSelectParent.id = 'backgroundSelectParent'
-    body.appendChild(divBackgroundSelectParent);
-    divBackgroundSelectParent = document.getElementById('backgroundSelectParent');
-
-    let changeBackgroundSelect = document.createElement('SELECT');
-    changeBackgroundSelect.id = 'backgroundSelect';
-    divBackgroundSelectParent.appendChild(changeBackgroundSelect);
-    changeBackgroundSelect = document.getElementById('backgroundSelect');
+    let changeBackgroundSelect = document.getElementById('backgroundSelect');
 
     let backgroundNames = ['Island', 'Desert', 'Beach'];
 
